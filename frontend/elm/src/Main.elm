@@ -1,21 +1,19 @@
 port module Main exposing (main)
 
-{-| stdscout UI.
+{-| StdScout — every executable on PATH, and the folders that keep them.
 
-Elm owns the DOM. Everything outside it is reached through ports:
+Two views over the same scan:
 
-  - `command` (out) asks main.js to call a Go binding.
-  - `animate` (out) asks main.js to run a GSAP tween.
-  - `stateFromJs` (in) receives the snapshot Go returned.
-  - `logFromJs` (in) receives activity from Go bindings and Go events.
+  - Applications: one row per executable, filterable.
+  - Locations: the PATH folders that hold a family of binaries.
 
-Elm never imports a Wails module, and main.js never builds DOM. That split is
-the whole point of this skeleton.
+Ports are the only way out: `request` asks main.js to call a Go binding,
+`binariesFromJs` / `locationsFromJs` / `errorFromJs` bring the answers back.
 
 -}
 
 import Browser
-import Html exposing (Html, button, div, footer, h1, header, main_, p, section, span, text)
+import Html exposing (Html, button, div, header, img, input, main_, nav, p, section, span, text)
 import Html.Attributes as Attr
 import Html.Events as Ev
 
@@ -24,103 +22,107 @@ import Html.Events as Ev
 -- PORTS
 
 
-port command : { action : String, amount : Int } -> Cmd msg
+port request : { action : String, target : String } -> Cmd msg
 
 
-port animate : String -> Cmd msg
+port binariesFromJs : (List Binary -> msg) -> Sub msg
 
 
-port stateFromJs : (CounterState -> msg) -> Sub msg
+port locationsFromJs : (List Location -> msg) -> Sub msg
 
 
-port logFromJs : (LogEntry -> msg) -> Sub msg
+port errorFromJs : (String -> msg) -> Sub msg
 
 
-{-| Shape of the snapshot returned by CounterService. Must stay a record of
-primitives so it can cross the port boundary.
--}
-type alias CounterState =
-    { count : Int
-    , lastAction : String
-    , updatedAt : String
+
+-- TYPES
+
+
+type alias Binary =
+    { name : String
+    , path : String
     }
 
 
-type alias LogEntry =
-    { at : String
-    , level : String
-    , message : String
+type alias Location =
+    { path : String
+    , label : String
+    , logo : String
+    , count : Int
     }
 
 
-type alias Flags =
-    { startedAt : String }
+type Tab
+    = Applications
+    | Locations
 
 
-
--- MODEL
+type Status
+    = Loading
+    | Ready
+    | Failed String
 
 
 type alias Model =
-    { count : Int
-    , lastAction : String
-    , updatedAt : String
-    , log : List LogEntry
-    , pending : Bool
+    { tab : Tab
+    , status : Status
+    , binaries : List Binary
+    , locations : List Location
+    , query : String
     }
 
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
-    ( { count = 0
-      , lastAction = "boot"
-      , updatedAt = flags.startedAt
-      , log = []
-      , pending = True
-      }
-    , command { action = "sync", amount = 0 }
-    )
-
-
-
--- UPDATE
-
-
 type Msg
-    = Requested String Int
-    | GotState CounterState
-    | GotLog LogEntry
+    = ShowTab Tab
+    | Reveal String
+    | QueryChanged String
+    | GotBinaries (List Binary)
+    | GotLocations (List Location)
+    | GotError String
+
+
+
+-- INIT / UPDATE
+
+
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( { tab = Applications, status = Loading, binaries = [], locations = [], query = "" }
+    , Cmd.batch
+        [ request { action = "list", target = "" }
+        , request { action = "locations", target = "" }
+        ]
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Requested action amount ->
-            ( { model | pending = True }
-            , command { action = action, amount = amount }
-            )
+        ShowTab tab ->
+            ( { model | tab = tab }, Cmd.none )
 
-        GotState state ->
-            ( { model
-                | count = state.count
-                , lastAction = state.lastAction
-                , updatedAt = state.updatedAt
-                , pending = False
-              }
-            , animate "count"
-            )
+        Reveal path ->
+            ( model, request { action = "reveal", target = path } )
 
-        GotLog entry ->
-            ( { model | log = List.take 6 (entry :: model.log) }
-            , animate "log"
-            )
+        QueryChanged query ->
+            ( { model | query = query }, Cmd.none )
+
+        GotBinaries binaries ->
+            ( { model | binaries = binaries, status = Ready }, Cmd.none )
+
+        GotLocations locations ->
+            ( { model | locations = locations, status = Ready }, Cmd.none )
+
+        GotError message ->
+            ( { model | status = Failed message }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ stateFromJs GotState
-        , logFromJs GotLog
+        [ binariesFromJs GotBinaries
+        , locationsFromJs GotLocations
+        , errorFromJs GotError
         ]
 
 
@@ -130,87 +132,234 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div [ Attr.class "app" ]
+    div [ Attr.class "shell" ]
         [ header [ Attr.class "topbar" ]
             [ div [ Attr.class "brand" ]
-                [ span [ Attr.class "brand-mark" ] [ text "◎" ]
-                , h1 [ Attr.class "brand-name" ] [ text "stdscout" ]
-                , span [ Attr.class "brand-tag" ] [ text "elm · ports · go" ]
+                [ img [ Attr.class "brand-logo", Attr.src "/logo.png", Attr.alt "" ] []
+                , span [ Attr.class "brand-name" ] [ text "StdScout" ]
                 ]
-            , div [ Attr.class ("status" ++ busyClass model.pending) ]
-                [ span [ Attr.class "status-dot" ] []
-                , span [] [ text (statusText model.pending) ]
-                ]
+            , span [ Attr.class "topbar-meta" ] [ text (summary model) ]
             ]
-        , main_ [ Attr.class "stage" ]
-            [ section [ Attr.class "panel panel--counter" ]
-                [ p [ Attr.class "label" ] [ text "counter · owned by go" ]
-                , span [ Attr.class "value", Attr.id "count" ] [ text (String.fromInt model.count) ]
-                , div [ Attr.class "row" ]
-                    [ button [ Attr.class "btn", Ev.onClick (Requested "decrement" 1) ] [ text "−1" ]
-                    , button [ Attr.class "btn btn--primary", Ev.onClick (Requested "increment" 1) ] [ text "+1" ]
-                    , button [ Attr.class "btn", Ev.onClick (Requested "increment" 10) ] [ text "+10" ]
-                    , button [ Attr.class "btn btn--ghost", Ev.onClick (Requested "reset" 0) ] [ text "reset" ]
-                    ]
-                , p [ Attr.class "meta" ]
-                    [ text ("last " ++ model.lastAction ++ " · " ++ model.updatedAt) ]
-                ]
-            , section [ Attr.class "panel panel--log", Attr.id "log" ]
-                [ p [ Attr.class "label" ] [ text "event stream" ]
-                , div [ Attr.class "log-list" ]
-                    (if List.isEmpty model.log then
-                        [ p [ Attr.class "log-empty" ] [ text "waiting for go…" ] ]
+        , nav [ Attr.class "tabs" ]
+            [ tabButton model.tab Applications "Applications"
+            , tabButton model.tab Locations "Locations"
+            ]
+        , main_ [ Attr.class "content" ]
+            (case model.tab of
+                Applications ->
+                    applicationsView model
 
-                     else
-                        List.map logRow model.log
-                    )
-                ]
-            ]
-        , footer [ Attr.class "footer" ]
-            [ span [] [ text "elm" ]
-            , span [ Attr.class "arrow" ] [ text "→" ]
-            , span [] [ text "ports" ]
-            , span [ Attr.class "arrow" ] [ text "→" ]
-            , span [] [ text "js" ]
-            , span [ Attr.class "arrow" ] [ text "→" ]
-            , span [] [ text "bindings" ]
-            , span [ Attr.class "arrow" ] [ text "→" ]
-            , span [ Attr.class "footer-go" ] [ text "go" ]
-            ]
+                Locations ->
+                    locationsView model
+            )
         ]
 
 
-logRow : LogEntry -> Html Msg
-logRow entry =
-    div [ Attr.class ("log-row log-row--" ++ entry.level) ]
-        [ span [ Attr.class "log-time" ] [ text entry.at ]
-        , span [ Attr.class "log-msg" ] [ text entry.message ]
+tabButton : Tab -> Tab -> String -> Html Msg
+tabButton active tab label =
+    button
+        [ Attr.class ("tab" ++ (if active == tab then " is-active" else ""))
+        , Ev.onClick (ShowTab tab)
+        ]
+        [ text label ]
+
+
+applicationsView : Model -> List (Html Msg)
+applicationsView model =
+    [ input
+        [ Attr.class "search"
+        , Attr.type_ "search"
+        , Attr.placeholder "Filter by name or path"
+        , Attr.attribute "aria-label" "Filter applications by name or path"
+        , Attr.autofocus True
+        , Attr.value model.query
+        , Ev.onInput QueryChanged
+        ]
+        []
+    , section [ Attr.class "list" ]
+        [ div [ Attr.class "list-head" ]
+            [ span [] [ text "Application" ]
+            , span [] [ text "Path" ]
+            , span [] []
+            ]
+        , div [ Attr.class "list-body" ] (rows model)
+        ]
+    ]
+
+
+rows : Model -> List (Html Msg)
+rows model =
+    case model.status of
+        Loading ->
+            [ p [ Attr.class "empty" ] [ text "Scanning PATH…" ] ]
+
+        Failed message ->
+            [ p [ Attr.class "empty empty--error" ] [ text message ] ]
+
+        Ready ->
+            let
+                visible =
+                    filtered model
+            in
+            if List.isEmpty model.binaries then
+                [ p [ Attr.class "empty" ] [ text "No executables on PATH." ] ]
+
+            else if List.isEmpty visible then
+                [ p [ Attr.class "empty" ] [ text ("Nothing matches \"" ++ model.query ++ "\".") ] ]
+
+            else
+                List.map row visible
+
+
+row : Binary -> Html Msg
+row binary =
+    div [ Attr.class "row" ]
+        [ span [ Attr.class "row-app" ]
+            [ img
+                [ Attr.class "row-icon"
+                , Attr.src ("/assets/ext-" ++ extClass binary.name ++ ".png")
+                , Attr.alt ""
+                ]
+                []
+            , span [ Attr.class "row-name", Attr.title binary.name ] [ text binary.name ]
+            ]
+        , span [ Attr.class "row-path", Attr.title binary.path ] [ text binary.path ]
+        , button
+            [ Attr.class "row-action"
+            , Attr.title ("Reveal " ++ binary.path)
+            , Ev.onClick (Reveal binary.path)
+            ]
+            [ text "Open folder" ]
         ]
 
 
-busyClass : Bool -> String
-busyClass pending =
-    if pending then
-        " is-busy"
+locationsView : Model -> List (Html Msg)
+locationsView model =
+    case model.status of
+        Loading ->
+            [ p [ Attr.class "empty" ] [ text "Scanning PATH…" ] ]
+
+        Failed message ->
+            [ p [ Attr.class "empty empty--error" ] [ text message ] ]
+
+        Ready ->
+            if List.isEmpty model.locations then
+                [ p [ Attr.class "empty" ] [ text "No PATH folders." ] ]
+
+            else
+                [ section [ Attr.class "grid" ] (List.map folder model.locations) ]
+
+
+folder : Location -> Html Msg
+folder location =
+    button
+        [ Attr.class "folder"
+        , Attr.title location.path
+        , Ev.onClick (Reveal location.path)
+        ]
+        [ span [ Attr.class "folder-art" ]
+            [ img [ Attr.class "folder-base", Attr.src "/assets/folder.png", Attr.alt "" ] []
+            , brandMark location.logo
+            ]
+        , span [ Attr.class "folder-label" ] [ text location.label ]
+        , span [ Attr.class "folder-count" ] [ text (String.fromInt location.count ++ " binaries") ]
+        ]
+
+
+{-| The brand sticker sits on the folder's front panel. Empty logo = no sticker.
+-}
+brandMark : String -> Html Msg
+brandMark slug =
+    if slug == "" then
+        text ""
 
     else
-        ""
+        img [ Attr.class "folder-logo", Attr.src ("/logos/" ++ slug ++ ".svg"), Attr.alt "" ] []
 
 
-statusText : Bool -> String
-statusText pending =
-    if pending then
-        "waiting on go"
+{-| Rows group extensions into three marks: real executables, scripts, and the
+Windows management snap-ins (.msc / .cpl).
+-}
+extClass : String -> String
+extClass name =
+    case String.toLower (Maybe.withDefault "" (List.head (List.reverse (String.split "." name)))) of
+        "msc" ->
+            "system"
+
+        "cpl" ->
+            "system"
+
+        "cmd" ->
+            "script"
+
+        "bat" ->
+            "script"
+
+        "com" ->
+            "script"
+
+        "js" ->
+            "script"
+
+        "vbs" ->
+            "script"
+
+        "wsf" ->
+            "script"
+
+        _ ->
+            "exe"
+
+
+filtered : Model -> List Binary
+filtered model =
+    let
+        needle =
+            String.toLower (String.trim model.query)
+    in
+    if needle == "" then
+        model.binaries
 
     else
-        "linked"
+        List.filter
+            (\binary -> String.contains needle (String.toLower (binary.name ++ " " ++ binary.path)))
+            model.binaries
+
+
+summary : Model -> String
+summary model =
+    case model.tab of
+        Locations ->
+            String.fromInt (List.length model.locations) ++ " folders"
+
+        Applications ->
+            case model.status of
+                Loading ->
+                    "scanning…"
+
+                Failed _ ->
+                    "unavailable"
+
+                Ready ->
+                    let
+                        total =
+                            List.length model.binaries
+
+                        shown =
+                            List.length (filtered model)
+                    in
+                    if shown == total then
+                        String.fromInt total ++ " on path"
+
+                    else
+                        String.fromInt shown ++ " of " ++ String.fromInt total
 
 
 
 -- PROGRAM
 
 
-main : Program Flags Model Msg
+main : Program () Model Msg
 main =
     Browser.element
         { init = init

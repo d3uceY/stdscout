@@ -1,343 +1,422 @@
-/* stdscout — app chrome. Elm renders the structure; this is the only styling. */
+/* StdScout — design tokens lifted from the Cokpyt site (Space Grotesk,
+   #fafafa page, #fff surfaces, #1b1d20 ink, 6px radii, no shadows). */
 
 @font-face {
-    font-family: "InterLocal";
-    src: url("/Inter-Medium.ttf") format("truetype");
-    /* One bundled weight; let the browser synthesise the rest. */
+    font-family: "Space Grotesk";
+    src: url("/fonts/space-grotesk-latin.woff2") format("woff2");
     font-weight: 400 700;
     font-display: swap;
 }
 
 :root {
-    --bg: #06070f;
-    --text: #eef1f7;
-    --muted: #8b94aa;
-    --faint: #4e566b;
-    --line: rgba(255, 255, 255, 0.09);
-    --fill: rgba(255, 255, 255, 0.04);
-    --accent: #b6ff3c;
-    --ok: #8ff0a4;
-    --warn: #ffd166;
-    --err: #ff8fa3;
-    --info: #8fd0ff;
+    --bg: #fafafa;
+    --surface: #fff;
+    --ink: #1b1d20;
+    --muted: #6a6f76;
+    --faint: #9aa0a6;
+    --line: #ebedee;
+    --line-strong: #dcdde0;
+    --primary: #232629;
+    --radius: 6px;
+    --font: "Space Grotesk", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
 
-    --font-ui: "InterLocal", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, "Cascadia Mono", "JetBrains Mono", Menlo, monospace;
-
-    color-scheme: dark;
+    color-scheme: light;
     -webkit-font-smoothing: antialiased;
 }
 
 * { box-sizing: border-box; }
 
 html, body {
-    margin: 0;
     height: 100%;
+    margin: 0;
     background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-ui);
-    /* Chrome is not a document: no text selection, and the window drags by its
-       background. Controls opt out with --wails-draggable: no-drag. */
-    -webkit-user-select: none;
-    user-select: none;
-    --wails-draggable: drag;
-}
-
-/* Two soft light sources so the flat dark panel does not read as dead space. */
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background:
-        radial-gradient(60% 55% at 18% 0%, rgba(182, 255, 60, 0.09), transparent 70%),
-        radial-gradient(50% 50% at 100% 100%, rgba(90, 130, 255, 0.10), transparent 70%);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 14.5px;
+    line-height: 1.6;
 }
 
 body {
-    display: grid;
-    place-items: center;
-    padding: 22px 26px 18px;
+    display: flex;
+    flex-direction: column;
+    /* Drag the window by its chrome; controls opt out below. */
+    --wails-draggable: drag;
 }
 
-/* Elm's mount node must not add a layout box of its own. */
 #app { display: contents; }
 
-.app {
-    width: 100%;
-    max-width: 1040px;
-    height: 100%;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    gap: 18px;
+/* Elm's root element. Without this the page grows instead of the list, and the
+   whole window gets a scrollbar. */
+.shell {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ── Top bar ─────────────────────────────────────────────────────────────── */
 
 .topbar {
+    flex: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    /* Fixed height: a larger logo centres inside it and cannot grow the bar. */
+    height: 56px;
+    padding: 0 20px;
+    background: var(--surface);
 }
 
 .brand {
     display: flex;
-    align-items: baseline;
-    gap: 10px;
-    min-width: 0;
+    align-items: center;
+    gap: 8px;
 }
 
-.brand-mark {
-    color: var(--accent);
-    font-size: 17px;
-    line-height: 1;
+.brand-logo {
+    width: 38px;
+    height: 38px;
+    /* 32px source, scaled up. Integer box keeps it on whole pixels, and
+       `pixelated` stops the upscale going soft. */
+    image-rendering: pixelated;
 }
 
 .brand-name {
-    margin: 0;
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    letter-spacing: -0.01em;
 }
 
-.brand-tag {
-    font-family: var(--font-mono);
+/* Micro label, straight from the Cokpyt tables. */
+.topbar-meta {
     font-size: 10.5px;
+    font-weight: 500;
     letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--faint);
-    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
-.status {
+/* ── Tabs ────────────────────────────────────────────────────────────────── */
+
+.tabs {
+    flex: none;
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 12px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    gap: 2px;
+    padding: 0 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+}
+
+.tab {
+    position: relative;
+    height: 42px;
+    padding: 0 12px;
+    border: 0;
+    background: none;
     color: var(--muted);
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.14s ease;
     --wails-draggable: no-drag;
 }
 
-.status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--ok);
-    box-shadow: 0 0 0 3px rgba(143, 240, 164, 0.14);
+.tab:hover { color: var(--ink); }
+
+.tab.is-active { color: var(--ink); }
+
+.tab.is-active::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: -1px;
+    height: 2px;
+    background: var(--primary);
 }
 
-.status.is-busy { color: var(--warn); }
-.status.is-busy .status-dot {
-    background: var(--warn);
-    box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.16);
-    animation: throb 1.1s ease-in-out infinite;
+.tab:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
 }
 
-@keyframes throb {
-    50% { opacity: 0.35; }
-}
+/* ── Content ─────────────────────────────────────────────────────────────── */
 
-/* ── Panels ──────────────────────────────────────────────────────────────── */
-
-.stage {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 18px;
+.content {
+    flex: 1;
     min-height: 0;
-}
-
-.panel {
-    position: relative;
     display: flex;
     flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 20px 24px 24px;
+}
+
+.search {
+    flex: none;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    --wails-draggable: no-drag;
+}
+
+.search::placeholder { color: var(--faint); }
+
+.search:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(35, 38, 41, 0.07);
+}
+
+/* ── List ────────────────────────────────────────────────────────────────── */
+
+.list {
+    flex: 1;
     min-height: 0;
-    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 16px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+    border-radius: 8px;
     overflow: hidden;
 }
 
-.panel--counter {
-    /* label | digit (centred in the slack) | buttons | meta */
+.list-head,
+.row {
     display: grid;
-    grid-template-rows: auto 1fr auto auto;
+    grid-template-columns: minmax(200px, 30%) minmax(0, 1fr) 104px;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
 }
 
-.panel--counter::after {
-    content: "";
-    position: absolute;
-    right: -80px;
-    bottom: -120px;
-    width: 320px;
-    height: 320px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(182, 255, 60, 0.12), transparent 65%);
-    pointer-events: none;
-}
-
-.label {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.18em;
+.list-head {
+    flex: none;
+    height: 36px;
+    border-bottom: 1px solid var(--line);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--faint);
 }
 
-.value {
-    display: block;
-    align-self: center;
-    margin: 0;
-    /* Proportional UI face, not the mono stack: at 100px+ a monospace dotted
-       zero (Cascadia) reads as a blob. Tabular figures keep it from jittering. */
-    font-family: var(--font-ui);
-    font-size: clamp(64px, 11vw, 128px);
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: -0.03em;
-    font-variant-numeric: tabular-nums;
-    color: var(--text);
-    text-shadow: 0 0 42px rgba(182, 255, 60, 0.16);
+.list-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
+
+.list-body::-webkit-scrollbar { width: 10px; }
+
+.list-body::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border: 3px solid var(--surface);
+    border-radius: 999px;
+}
+
+.list-body::-webkit-scrollbar-thumb:hover { background: #c3c6ca; }
 
 .row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 22px;
+    height: 38px;
+    border-bottom: 1px solid #f2f3f4;
+    transition: background 0.12s ease;
 }
 
-.btn {
-    padding: 10px 16px;
-    border: 1px solid var(--line);
-    border-radius: 9px;
-    background: var(--fill);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 12.5px;
-    letter-spacing: 0.04em;
+.row:last-child { border-bottom: 0; }
+
+/* The action only exists on hover — and on keyboard focus, so it is reachable
+   without a mouse. */
+.row:hover,
+.row:focus-within { background: var(--bg); }
+
+.row-name,
+.row-path {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Name cell carries the extension mark. */
+.row-app {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.row-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    image-rendering: pixelated;
+}
+
+.row-name {
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.row-path {
+    color: var(--muted);
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+.row-action {
+    justify-self: end;
+    height: 26px;
+    padding: 0 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.16s ease, border-color 0.16s ease, transform 0.1s ease;
+    opacity: 0;
+    transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
     --wails-draggable: no-drag;
 }
 
-.btn:hover {
-    background: rgba(255, 255, 255, 0.085);
-    border-color: rgba(255, 255, 255, 0.2);
+.row:hover .row-action,
+.row:focus-within .row-action { opacity: 1; }
+
+.row-action:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
 }
 
-.btn:active { transform: translateY(1px); }
-
-.btn:focus-visible {
-    outline: 2px solid var(--accent);
+.row-action:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
 
-.btn--primary {
-    background: var(--accent);
-    border-color: transparent;
-    color: #0b1004;
-    font-weight: 600;
+/* ── Locations: folder grid ──────────────────────────────────────────────── */
+
+.grid {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    align-content: start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
-.btn--primary:hover { background: #c6ff5e; }
+.grid::-webkit-scrollbar { width: 10px; }
 
-.btn--ghost {
-    background: transparent;
+.grid::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border: 3px solid var(--bg);
+    border-radius: 999px;
+}
+
+.folder {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.14s ease, background 0.14s ease;
+    --wails-draggable: no-drag;
+}
+
+.folder:hover {
+    border-color: var(--line-strong);
+    background: var(--bg);
+}
+
+.folder:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}
+
+/* Pixel folder with the brand mark sitting on its front panel. */
+.folder-art {
+    position: relative;
+    display: block;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 10px;
+}
+
+.folder-base {
+    display: block;
+    width: 56px;
+    height: 56px;
+    image-rendering: pixelated;
+}
+
+.folder-logo {
+    position: absolute;
+    left: 50%;
+    top: 61%;
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, -50%);
+}
+
+.folder-label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13.5px;
+    font-weight: 500;
+}
+
+.folder-count {
+    font-size: 11px;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Empty / error ───────────────────────────────────────────────────────── */
+
+.empty {
+    margin: 0;
+    padding: 40px 16px;
+    text-align: center;
     color: var(--muted);
 }
 
-.meta {
-    margin: 14px 0 0;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--faint);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* ── Event stream ────────────────────────────────────────────────────────── */
-
-.log-list {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    margin-top: 14px;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-}
-
-.log-row {
-    display: grid;
-    grid-template-columns: 58px 1fr;
-    gap: 10px;
-    padding: 6px 0;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
-    font-family: var(--font-mono);
-    font-size: 11.5px;
-    line-height: 1.35;
-}
-
-.log-time { color: #4a5265; }
-
-.log-msg {
-    color: #c2cadb;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.log-row--ok .log-msg { color: var(--ok); }
-.log-row--warn .log-msg { color: var(--warn); }
-.log-row--err .log-msg { color: var(--err); }
-.log-row--info .log-msg { color: var(--info); }
-
-.log-empty {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: 11.5px;
-    color: #4a5265;
-}
-
-/* ── Footer: the pipeline, spelled out ───────────────────────────────────── */
-
-.footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 7px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #3f4759;
-}
-
-.footer .arrow { color: #2b3242; }
-.footer-go { color: var(--accent); }
+.empty--error { color: #b42318; }
 
 /* ── Narrow windows ──────────────────────────────────────────────────────── */
 
-@media (max-width: 760px) {
-    body { padding: 16px 16px 12px; }
-
-    .stage {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
+@media (max-width: 620px) {
+    .list-head,
+    .row {
+        grid-template-columns: minmax(0, 1fr) 104px;
     }
 
-    .brand-tag { display: none; }
+    /* Drop the path column rather than squeeze it to nothing. */
+    .list-head > span:nth-child(2),
+    .row-path { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

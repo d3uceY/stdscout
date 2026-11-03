@@ -1,121 +1,48 @@
-// ─── The bridge ─────────────────────────────────────────────────────────────
+// Elm owns the DOM. This file only moves messages:
 //
-//   Elm (owns the DOM)
-//     │  ports: command / animate            (Elm → JS)
-//     │  ports: stateFromJs / logFromJs      (JS  → Elm)
-//     ▼
-//   this file
-//     │  Wails bindings: CounterService.*    (JS → Go, call/response)
-//     │  Wails events:   "notice"            (Go → JS, push)
-//     ▼
-//   Go
+//   Elm --port--> here --bindings--> Go
 //
-// Nothing here builds markup — Elm does that. Nothing in Elm knows Wails
-// exists. Keep it that way and either side can be swapped out.
+// and animates what Elm renders.
 
-import { Events } from "@wailsio/runtime";
 import gsap from "gsap";
-import { CounterService } from "../bindings/github.com/d3uceY/stdscout";
+import { Binaries } from "../bindings/github.com/d3uceY/stdscout/backend";
 
-const stage = document.getElementById("app");
+const root = document.getElementById("app");
 
 if (!window.Elm) {
-  stage.textContent =
-    "public/elm.js is missing — run `npm run elm:build` before starting the app.";
+  root.textContent = "public/elm.js is missing — run `npm run elm:build`.";
 } else {
-  boot(
-    window.Elm.Main.init({
-      node: stage,
-      flags: { startedAt: clock() },
-    }),
-  );
-}
+  const app = window.Elm.Main.init({ node: root, flags: null });
 
-function clock() {
-  return new Date().toTimeString().slice(0, 8);
-}
-
-function boot(app) {
-  wirePorts(app);
-  wireEvents(app);
-  intro();
-}
-
-// ─── Elm → JS → Go ──────────────────────────────────────────────────────────
-
-// One table instead of a switch: adding a command is one line, and Elm already
-// decides which actions exist.
-const actions = {
-  sync: () => CounterService.State(),
-  increment: (amount) => CounterService.Increment(amount),
-  decrement: (amount) => CounterService.Increment(-amount),
-  reset: () => CounterService.Reset(),
-};
-
-function wirePorts(app) {
-  app.ports.command.subscribe(async ({ action, amount }) => {
-    const run = actions[action];
-    if (!run) {
-      log(app, "warn", `unknown action "${action}"`);
-      return;
-    }
-
+  app.ports.request.subscribe(async ({ action, target }) => {
     try {
-      const state = await run(amount);
-      app.ports.stateFromJs.send({
-        count: state.count,
-        lastAction: state.lastAction,
-        updatedAt: state.updatedAt,
-      });
-      log(app, "ok", `${action}(${amount}) → count = ${state.count}`);
+      if (action === "list") {
+        const binaries = await Binaries.List();
+        // Plain objects only: port payloads are records, not class instances.
+        app.ports.binariesFromJs.send(binaries.map((b) => ({ name: b.name, path: b.path })));
+        requestAnimationFrame(() => fade(".row", { y: 6, stagger: 0.012 }));
+      } else if (action === "locations") {
+        const places = await Binaries.Locations();
+        app.ports.locationsFromJs.send(
+          places.map((p) => ({ path: p.path, label: p.label, logo: p.logo, count: p.count })),
+        );
+        requestAnimationFrame(() => fade(".folder", { y: 8, stagger: 0.01 }));
+      } else if (action === "reveal") {
+        await Binaries.Reveal(target);
+      } else {
+        app.ports.errorFromJs.send(`unknown action "${action}"`);
+      }
     } catch (err) {
-      // Most likely cause during plain `vite` development: no Go backend. Send a
-      // zero snapshot anyway so Elm stops showing "waiting on go" forever.
-      app.ports.stateFromJs.send({ count: 0, lastAction: "unavailable", updatedAt: clock() });
-      log(app, "err", `go call failed: ${describe(err)}`);
+      app.ports.errorFromJs.send(describe(err));
     }
   });
 
-  // Elm queues a port message *during* update and the DOM is patched after, so
-  // wait one frame or GSAP animates the element that is about to be replaced.
-  app.ports.animate.subscribe((target) => {
-    requestAnimationFrame(() => {
-      if (target === "count") {
-        gsap.fromTo(
-          "#count",
-          { y: 10, scale: 0.94, opacity: 0.35 },
-          { y: 0, scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
-        );
-      }
-
-      if (target === "log") {
-        const newest = document.querySelector(".log-row");
-        if (newest) {
-          gsap.fromTo(
-            newest,
-            { x: -14, opacity: 0 },
-            { x: 0, opacity: 1, duration: 0.32, ease: "power2.out" },
-          );
-        }
-      }
-    });
-  });
+  // Only the top bar animates on launch: fading the content from zero just makes
+  // the window look empty for half a second. Rows fade in when data arrives.
+  fade(".topbar", { y: -6, stagger: 0 });
 }
 
-// ─── Go → JS → Elm ──────────────────────────────────────────────────────────
-
-function wireEvents(app) {
-  Events.On("notice", (event) => {
-    log(app, "info", event.data);
-  });
-}
-
-function log(app, level, message) {
-  app.ports.logFromJs.send({ at: clock(), level, message });
-}
-
-// Wails rejects with plain strings or bare objects, so `${err.message}` alone
-// often renders as an empty line.
+// Wails rejects with a bare object in browser preview, so err.message is empty.
 function describe(err) {
   if (!err) return "unknown error";
   if (typeof err === "string") return err;
@@ -124,12 +51,17 @@ function describe(err) {
   return json === "{}" ? "backend unavailable" : json;
 }
 
-// ─── GSAP: one intro timeline ───────────────────────────────────────────────
+const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function intro() {
-  gsap
-    .timeline({ defaults: { ease: "power3.out" } })
-    .from(".topbar > *", { y: -12, opacity: 0, duration: 0.45, stagger: 0.08 })
-    .from(".panel", { y: 26, opacity: 0, duration: 0.55, stagger: 0.1 }, "-=0.2")
-    .from(".footer > *", { opacity: 0, x: -6, duration: 0.3, stagger: 0.05 }, "-=0.35");
+// `amount` caps the whole stagger, otherwise 900 rows animate for ten seconds.
+function fade(selector, { y = 0, stagger = 0.02 } = {}) {
+  if (calm) return;
+  gsap.from(selector, {
+    opacity: 0,
+    y,
+    duration: 0.35,
+    ease: "power2.out",
+    stagger: { each: stagger, amount: 0.4 },
+    clearProps: "opacity,transform",
+  });
 }
