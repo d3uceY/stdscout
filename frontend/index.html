@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <link rel="stylesheet" href="/style.css"/>
+    <title>StdScout</title>
+</head>
+<body>
+<!-- Elm mounts here and owns everything inside it. -->
+<div id="app"></div>
+
+<!-- `elm make` compiles to a classic script that assigns window.Elm, so it has
+     to load before the module below, which calls Elm.Main.init(). -->
+<script src="/elm.js"></script>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

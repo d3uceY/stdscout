@@ -1,0 +1,22 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "elm:build": "elm make elm/src/Main.elm --output=public/elm.js --optimize",
+    "elm:build:dev": "elm make elm/src/Main.elm --output=public/elm.js",
+    "elm:format": "elm-format elm/src --yes",
+    "dev": "npm run elm:build:dev && vite",
+    "build:dev": "npm run elm:build:dev && vite build --minify false --mode development",
+    "build": "npm run elm:build && vite build --mode production",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@wailsio/runtime": "3.0.0",
+    "gsap": "^3.13.0"
+  },
+  "devDependencies": {
+    "vite": "^8.2.4"
+  }
+}
