@@ -11,7 +11,7 @@
     !define INFO_COMPANYNAME "d3uceY"
 !endif
 !ifndef INFO_PRODUCTNAME
-    !define INFO_PRODUCTNAME "StdScout"
+    !define INFO_PRODUCTNAME "stdscout"
 !endif
 !ifndef INFO_PRODUCTVERSION
     !define INFO_PRODUCTVERSION "0.1.0"

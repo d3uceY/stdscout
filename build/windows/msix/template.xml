@@ -10,15 +10,15 @@
     <Installer
         Path="stdscout.exe"
         Arguments=""
-        InstallLocation="C:\Program Files\d3uceY\StdScout">
+        InstallLocation="C:\Program Files\d3uceY\stdscout">
     </Installer>
     <PackageInformation
-        PackageName="StdScout"
-        PackageDisplayName="StdScout"
+        PackageName="stdscout"
+        PackageDisplayName="stdscout"
         PublisherName="CN=d3uceY"
         PublisherDisplayName="d3uceY"
         Version="0.1.0.0"
-        PackageDescription="StdScout desktop app">
+        PackageDescription="stdscout desktop app">
         <Capabilities>
             <Capability Name="runFullTrust" />
             
@@ -26,8 +26,8 @@
         <Applications>
             <Application
                 Id="com.d3ucey.stdscout"
-                Description="StdScout desktop app"
-                DisplayName="StdScout"
+                Description="stdscout desktop app"
+                DisplayName="stdscout"
                 ExecutableName="stdscout.exe"
                 EntryPoint="Windows.FullTrustApplication">
                 
@@ -41,9 +41,9 @@
         </Dependencies>
         <Properties>
             <Framework>false</Framework>
-            <DisplayName>StdScout</DisplayName>
+            <DisplayName>stdscout</DisplayName>
             <PublisherDisplayName>d3uceY</PublisherDisplayName>
-            <Description>StdScout desktop app</Description>
+            <Description>stdscout desktop app</Description>
             <Logo>Assets\AppIcon.png</Logo>
         </Properties>
     </PackageInformation>

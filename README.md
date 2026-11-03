@@ -1,4 +1,4 @@
-# StdScout
+# stdscout
 
 Wails 3 desktop skeleton: **Go backend · Elm UI · JavaScript bridge · GSAP motion.**
 
@@ -28,6 +28,7 @@ builds markup. Go owns the state.
 main.go                     app setup, window, `notice` event emitter
 counterservice.go           the only Go service; all state lives here
 build/                      Wails build config, icons, per-OS taskfiles
+                            (windows, darwin, linux — desktop targets only)
 frontend/
   elm.json                  Elm app manifest (source dir: elm/src)
   elm/src/Main.elm          model / update / view + port declarations

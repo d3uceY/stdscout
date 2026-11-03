@@ -4,7 +4,7 @@
         <key>CFBundlePackageType</key>
             <string>APPL</string>
         <key>CFBundleName</key>
-            <string>StdScout</string>
+            <string>stdscout</string>
         <key>CFBundleExecutable</key>
             <string>stdscout.exe</string>
         <key>CFBundleIdentifier</key>

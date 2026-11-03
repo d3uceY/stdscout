@@ -31,7 +31,7 @@ func init() {
 // one event channel (pushed to JS, which forwards it into Elm).
 func main() {
 	app := application.New(application.Options{
-		Name:        "StdScout",
+		Name:        "stdscout",
 		Description: "Wails 3 + Elm ports + GSAP skeleton",
 		Services: []application.Service{
 			application.NewService(&CounterService{}),
@@ -45,7 +45,7 @@ func main() {
 	})
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:  "StdScout",
+		Title:  "stdscout",
 		Width:  1100,
 		Height: 700,
 		Mac: application.MacWindow{

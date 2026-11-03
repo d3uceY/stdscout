@@ -1,6 +1,6 @@
 port module Main exposing (main)
 
-{-| StdScout UI.
+{-| stdscout UI.
 
 Elm owns the DOM. Everything outside it is reached through ports:
 
@@ -134,7 +134,7 @@ view model =
         [ header [ Attr.class "topbar" ]
             [ div [ Attr.class "brand" ]
                 [ span [ Attr.class "brand-mark" ] [ text "◎" ]
-                , h1 [ Attr.class "brand-name" ] [ text "StdScout" ]
+                , h1 [ Attr.class "brand-name" ] [ text "stdscout" ]
                 , span [ Attr.class "brand-tag" ] [ text "elm · ports · go" ]
                 ]
             , div [ Attr.class ("status" ++ busyClass model.pending) ]
