@@ -217,7 +217,7 @@ row binary =
         [ span [ Attr.class "row-app" ]
             [ img
                 [ Attr.class "row-icon"
-                , Attr.src ("/assets/ext-" ++ extClass binary.name ++ ".png")
+                , Attr.src ("/assets/ext-" ++ iconFor binary.name ++ ".png")
                 , Attr.alt ""
                 ]
                 []
@@ -277,35 +277,35 @@ brandMark slug =
         img [ Attr.class "folder-logo", Attr.src ("/logos/" ++ slug ++ ".svg"), Attr.alt "" ] []
 
 
-{-| Rows group extensions into three marks: real executables, scripts, and the
-Windows management snap-ins (.msc / .cpl).
+{-| One mark per executable type. Anything without art of its own falls back
+ to the generic application window.
 -}
-extClass : String -> String
-extClass name =
+iconFor : String -> String
+iconFor name =
     case String.toLower (Maybe.withDefault "" (List.head (List.reverse (String.split "." name)))) of
         "msc" ->
-            "system"
+            "msc"
 
         "cpl" ->
-            "system"
+            "cpl"
 
         "cmd" ->
-            "script"
+            "cmd"
 
         "bat" ->
-            "script"
+            "bat"
 
         "com" ->
-            "script"
+            "com"
 
         "js" ->
-            "script"
+            "js"
 
         "vbs" ->
-            "script"
+            "vbs"
 
         "wsf" ->
-            "script"
+            "wsf"
 
         _ ->
             "exe"
