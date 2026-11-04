@@ -26,24 +26,47 @@ if (!window.Elm) {
 } else {
   const app = window.Elm.Main.init({ node: root, flags: null });
 
+  // One handler per action: adding a binding is one entry, not another branch.
+  const actions = {
+    async list() {
+      const binaries = await Binaries.List();
+      // Plain objects only: port payloads are records, not class instances.
+      app.ports.binariesFromJs.send(
+        binaries.map(({ name, path, logo, shadowed, system }) => ({
+          name,
+          path,
+          logo,
+          shadowed,
+          system,
+        })),
+      );
+      requestAnimationFrame(() => fade(".row", { y: 6, stagger: 0.012 }));
+    },
+    async locations() {
+      const places = await Binaries.Locations();
+      app.ports.locationsFromJs.send(
+        places.map(({ path, label, logo, count, system, dead }) => ({
+          path,
+          label,
+          logo,
+          count,
+          system,
+          dead,
+        })),
+      );
+      requestAnimationFrame(() => fade(".folder", { y: 8, stagger: 0.01 }));
+    },
+    reveal: (path) => Binaries.Reveal(path),
+  };
+
   app.ports.request.subscribe(async ({ action, target }) => {
+    const handler = actions[action];
+    if (!handler) {
+      app.ports.errorFromJs.send(`unknown action "${action}"`);
+      return;
+    }
     try {
-      if (action === "list") {
-        const binaries = await Binaries.List();
-        // Plain objects only: port payloads are records, not class instances.
-        app.ports.binariesFromJs.send(binaries.map((b) => ({ name: b.name, path: b.path })));
-        requestAnimationFrame(() => fade(".row", { y: 6, stagger: 0.012 }));
-      } else if (action === "locations") {
-        const places = await Binaries.Locations();
-        app.ports.locationsFromJs.send(
-          places.map((p) => ({ path: p.path, label: p.label, logo: p.logo, count: p.count })),
-        );
-        requestAnimationFrame(() => fade(".folder", { y: 8, stagger: 0.01 }));
-      } else if (action === "reveal") {
-        await Binaries.Reveal(target);
-      } else {
-        app.ports.errorFromJs.send(`unknown action "${action}"`);
-      }
+      await handler(target);
     } catch (err) {
       app.ports.errorFromJs.send(describe(err));
     }

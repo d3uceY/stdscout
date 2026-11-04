@@ -116,11 +116,75 @@ body {
 .tabs {
     flex: none;
     display: flex;
-    gap: 2px;
+    align-items: center;
+    justify-content: space-between;
     padding: 0 20px;
     background: var(--surface);
     border-bottom: 1px solid var(--line);
 }
+
+.tabs-list {
+    display: flex;
+    gap: 2px;
+}
+
+/* System binaries are 80% of a PATH and 0% of the reason to open this app,
+   so they are opt-in. */
+.toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    --wails-draggable: no-drag;
+}
+
+.toggle input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+}
+
+.toggle-track {
+    position: relative;
+    display: block;
+    width: 26px;
+    height: 15px;
+    border-radius: 999px;
+    background: var(--line-strong);
+    transition: background 0.14s ease;
+}
+
+.toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 1px 2px rgba(27, 29, 32, 0.25);
+    transition: transform 0.14s ease;
+}
+
+.toggle input:checked + .toggle-track { background: var(--primary); }
+
+.toggle input:checked + .toggle-track .toggle-thumb { transform: translateX(11px); }
+
+.toggle input:focus-visible + .toggle-track {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.toggle-text {
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+
+.toggle input:checked ~ .toggle-text { color: var(--ink); }
 
 .tab {
     position: relative;
@@ -208,7 +272,7 @@ body {
 .list-head,
 .row {
     display: grid;
-    grid-template-columns: minmax(200px, 30%) minmax(0, 1fr) 104px;
+    grid-template-columns: minmax(180px, 28%) minmax(0, 1fr) 104px;
     align-items: center;
     gap: 16px;
     padding: 0 16px;
@@ -216,9 +280,9 @@ body {
 
 .list-head {
     flex: none;
-    height: 36px;
+    height: 32px;
     border-bottom: 1px solid var(--line);
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -243,7 +307,7 @@ body {
 .list-body::-webkit-scrollbar-thumb:hover { background: #c3c6ca; }
 
 .row {
-    height: 38px;
+    height: 34px;
     border-bottom: 1px solid #f2f3f4;
     transition: background 0.12s ease;
 }
@@ -270,34 +334,73 @@ body {
     min-width: 0;
 }
 
+/* File-type mark with the folder's brand stacked over it, nudged left so both
+   stay readable: one says what the file is, the other what the folder is. */
 .row-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
     flex: none;
-    width: 16px;
+    width: 24px;
     height: 16px;
+}
+
+.row-brand {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    width: 15px;
+    height: 15px;
+    margin-right: -3px;
+    border-radius: 3px;
+    /* A halo, not a padding box: the mark keeps its full size and still reads
+       as sitting on top of the file-type icon behind it. */
+    box-shadow: 0 0 0 1px var(--surface);
+}
+
+.row-ext {
+    flex: none;
+    width: 14px;
+    height: 14px;
     image-rendering: pixelated;
 }
 
 .row-name {
+    font-size: 13px;
     font-weight: 500;
     color: var(--ink);
 }
 
 .row-path {
     color: var(--muted);
-    font-size: 13.5px;
+    font-size: 12px;
     font-variant-numeric: tabular-nums;
+}
+
+/* The one fact a plain `where` cannot give you: an earlier folder wins. */
+.row-flag {
+    flex: none;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #fdf1e3;
+    color: #8a5a00;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 15px;
+    text-transform: uppercase;
 }
 
 .row-action {
     justify-self: end;
-    height: 26px;
-    padding: 0 10px;
+    height: 24px;
+    padding: 0 9px;
     border: 1px solid var(--line-strong);
     border-radius: var(--radius);
     background: var(--surface);
     color: var(--ink);
     font-family: inherit;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 500;
     cursor: pointer;
     opacity: 0;
@@ -368,6 +471,19 @@ body {
     outline-offset: 1px;
 }
 
+/* A folder that is on PATH but no longer exists: nothing to drill into. */
+.folder--dead {
+    border-style: dashed;
+    background: transparent;
+    cursor: default;
+}
+
+.folder--dead .folder-art { opacity: 0.3; }
+
+.folder--dead .folder-label { color: var(--muted); }
+
+.folder--dead .folder-count { color: #b42318; }
+
 /* Pixel folder with the brand mark sitting on its front panel. */
 .folder-art {
     position: relative;
@@ -421,7 +537,7 @@ body {
 
 /* ── Narrow windows ──────────────────────────────────────────────────────── */
 
-@media (max-width: 620px) {
+@media (max-width: 560px) {
     .list-head,
     .row {
         grid-template-columns: minmax(0, 1fr) 104px;
