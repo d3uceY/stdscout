@@ -176,9 +176,12 @@ row binary =
         , button
             [ Attr.class "row-action"
             , Attr.title ("Reveal " ++ binary.path)
+            , Attr.attribute "aria-label" ("Reveal " ++ binary.path ++ " in its folder")
             , Ev.onClick (Reveal binary.path)
             ]
-            [ text "Open folder" ]
+            [ img [ Attr.class "row-action-icon", Attr.src "/assets/folder.png", Attr.alt "" ] []
+            , span [ Attr.class "row-action-text" ] [ text "Open folder" ]
+            ]
         ]
 
 

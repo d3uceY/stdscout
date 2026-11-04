@@ -392,6 +392,9 @@ body {
 }
 
 .row-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     justify-self: end;
     height: 24px;
     padding: 0 9px;
@@ -406,6 +409,14 @@ body {
     opacity: 0;
     transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
     --wails-draggable: no-drag;
+}
+
+/* The same pixel folder the grid tiles use. It is authored at 56px, so it is
+   scaled down smoothly here: nearest-neighbour at this size eats its outline. */
+.row-action-icon {
+    flex: none;
+    width: 15px;
+    height: 15px;
 }
 
 .row:hover .row-action,
@@ -537,10 +548,31 @@ body {
 
 /* ── Narrow windows ──────────────────────────────────────────────────────── */
 
+/* At the shipped window width and below the label goes away: "Open folder" is
+   the same three words on every row, and the column is better spent on the
+   path. The folder mark carries the meaning on its own. */
+@media (max-width: 620px) {
+    .list-head,
+    .row {
+        grid-template-columns: minmax(180px, 28%) minmax(0, 1fr) 28px;
+    }
+
+    .row-action {
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+    }
+
+    .row-action-text { display: none; }
+
+    .row-action-icon { width: 18px; height: 18px; }
+}
+
 @media (max-width: 560px) {
     .list-head,
     .row {
-        grid-template-columns: minmax(0, 1fr) 104px;
+        grid-template-columns: minmax(0, 1fr) 28px;
     }
 
     /* Drop the path column rather than squeeze it to nothing. */
