@@ -1,0 +1,150 @@
+{ "frames": [
+   {
+    "filename": "stdscout-react-doze #doze 0.aseprite",
+    "frame": { "x": 0, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 140
+   },
+   {
+    "filename": "stdscout-react-doze #doze 1.aseprite",
+    "frame": { "x": 34, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 140
+   },
+   {
+    "filename": "stdscout-react-doze #doze 2.aseprite",
+    "frame": { "x": 68, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 140
+   },
+   {
+    "filename": "stdscout-react-doze #doze 3.aseprite",
+    "frame": { "x": 102, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 110
+   },
+   {
+    "filename": "stdscout-react-doze #doze 4.aseprite",
+    "frame": { "x": 136, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 150
+   },
+   {
+    "filename": "stdscout-react-doze #doze 5.aseprite",
+    "frame": { "x": 170, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 170
+   },
+   {
+    "filename": "stdscout-react-doze #doze 6.aseprite",
+    "frame": { "x": 204, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 170
+   },
+   {
+    "filename": "stdscout-react-doze #doze 7.aseprite",
+    "frame": { "x": 238, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 170
+   },
+   {
+    "filename": "stdscout-react-doze #doze 8.aseprite",
+    "frame": { "x": 272, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 150
+   },
+   {
+    "filename": "stdscout-react-doze #doze 9.aseprite",
+    "frame": { "x": 306, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 70
+   },
+   {
+    "filename": "stdscout-react-doze #doze 10.aseprite",
+    "frame": { "x": 340, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 110
+   },
+   {
+    "filename": "stdscout-react-doze #doze 11.aseprite",
+    "frame": { "x": 374, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 140
+   },
+   {
+    "filename": "stdscout-react-doze #doze 12.aseprite",
+    "frame": { "x": 408, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 140
+   },
+   {
+    "filename": "stdscout-react-doze #doze 13.aseprite",
+    "frame": { "x": 442, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 140
+   }
+ ],
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.18.6-dev",
+  "image": "doze-sheet.png",
+  "format": "RGBA8888",
+  "size": { "w": 476, "h": 34 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "doze", "from": 0, "to": 13, "direction": "forward", "color": "#000000ff" }
+  ],
+  "layers": [
+   { "name": "leg-left", "opacity": 255, "blendMode": "normal" },
+   { "name": "leg-right", "opacity": 255, "blendMode": "normal" },
+   { "name": "body", "opacity": 255, "blendMode": "normal" },
+   { "name": "hand-left", "opacity": 255, "blendMode": "normal" },
+   { "name": "hand-right", "opacity": 255, "blendMode": "normal" },
+   { "name": "hat", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}

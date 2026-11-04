@@ -83,6 +83,9 @@ body {
     width: 38px;
     height: 38px;
     overflow: hidden;
+    cursor: pointer;
+    /* Clickable, so it must not start a window drag. */
+    --wails-draggable: no-drag;
 }
 
 .brand-logo img {

@@ -180,7 +180,6 @@ row binary =
             , Ev.onClick (Reveal binary.path)
             ]
             [ img [ Attr.class "row-action-icon", Attr.src "/assets/folder.png", Attr.alt "" ] []
-            , span [ Attr.class "row-action-text" ] [ text "Open folder" ]
             ]
         ]
 

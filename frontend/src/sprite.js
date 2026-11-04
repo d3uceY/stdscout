@@ -25,10 +25,14 @@ export function framePlan(clip) {
   return { intro, loop: steps(clip, clampRange(clip.loop ?? play, total), total) };
 }
 
-/** How long one frame is held: the clip's `frameMs`, then each timing rule in
-    order, where the last rule covering the frame wins. */
+/** How long one frame is held: per-frame durations from the Aseprite export win,
+    then the clip's `frameMs`, then each timing rule in order, where the last
+    rule covering the frame wins. */
 export function frameMsFor(clip, frame, total) {
   const sheetFrames = Math.max(1, Math.floor(total ?? clip.sheet.frames));
+  const exported = clip.frameMsByFrame?.[frame - 1];
+  if (exported) return exported;
+
   let ms = clip.frameMs ?? SPRITE_FRAME_MS;
 
   for (const rule of clip.timing ?? []) {
@@ -44,16 +48,21 @@ export function spanRange(span) {
   return typeof span === "number" ? [span, span] : span;
 }
 
+/** The player currently mounted in a host, so a new clip can replace it. */
+const players = new WeakMap();
+
 /**
  * Play `clip` inside `host`, which must be a fixed-size, `overflow: hidden` box.
  *
  * The image is the whole strip and the player steps it with a transform, so the
  * work stays on the compositor and the pixel grid stays honest. Reduced motion
- * freezes on the first frame. A `loop: false` clip holds its last frame.
+ * freezes on the first frame. A `loop: false` clip holds its last frame and the
+ * returned promise resolves there, which is how a one-shot reaction hands the
+ * box back to the idle loop.
  */
 export function playSprite(host, clip) {
-  if (!host || host.dataset.sprite) return;
-  host.dataset.sprite = "on";
+  if (!host) return Promise.resolve();
+  stopSprite(host);
 
   // CSS owns the on-screen size; the engine just follows it, so one art pixel
   // never lands on a half screen pixel.
@@ -77,23 +86,46 @@ export function playSprite(host, clip) {
   const first = plan.intro[0];
   draw(first.frame);
 
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let timer = 0;
+  players.set(host, {
+    stop() {
+      clearTimeout(timer);
+      img.remove();
+    },
+  });
 
-  // One timer at a time so every frame can hold for its own time.
-  let step = 0;
-  const tick = () => {
-    const { intro, loop } = plan;
-    const current =
-      step < intro.length ? intro[step] : loop ? loop[(step - intro.length) % loop.length] : undefined;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return Promise.resolve();
 
-    if (!current) return;
+  return new Promise((resolve) => {
+    // One timer at a time so every frame can hold for its own time.
+    let step = 0;
+    const tick = () => {
+      const { intro, loop } = plan;
+      const current =
+        step < intro.length ? intro[step] : loop ? loop[(step - intro.length) % loop.length] : undefined;
 
-    draw(current.frame);
-    step++;
-    setTimeout(tick, current.frameMs);
-  };
+      // Nothing left to show: the clip ran out, so it holds its last frame.
+      if (!current) {
+        resolve();
+        return;
+      }
 
-  tick();
+      draw(current.frame);
+      step++;
+      timer = setTimeout(tick, current.frameMs);
+    };
+
+    tick();
+  });
+}
+
+/** Take whatever is playing out of `host` and leave the box empty. */
+export function stopSprite(host) {
+  const player = host && players.get(host);
+  if (!player) return;
+
+  player.stop();
+  players.delete(host);
 }
 
 function steps(clip, range, total) {

@@ -19,6 +19,9 @@ const BRAND_CLIP = {
   ],
 };
 
+const EGG_SHEETS = ["blink", "glance", "wave", "startle", "doze"];
+const eggClips = new Map();
+
 const root = document.getElementById("app");
 
 if (!window.Elm) {
@@ -77,7 +80,61 @@ if (!window.Elm) {
   fade(".topbar", { y: -6, stagger: 0 });
 
   // Elm renders the empty crop box; the player owns everything inside it.
-  playSprite(document.querySelector(".brand-logo"), BRAND_CLIP);
+  const mascot = document.querySelector(".brand-logo");
+  playSprite(mascot, BRAND_CLIP);
+
+  // Warm the reaction sheets so the first click is not a fetch.
+  EGG_SHEETS.forEach(loadEgg);
+
+  let reaction = "";
+  let busy = false;
+
+  mascot.addEventListener("click", async () => {
+    if (busy) return;
+
+    busy = true;
+    try {
+      const name = pickEgg(reaction);
+      const clip = await loadEgg(name);
+      reaction = name;
+
+      // The idle loop never ends, so it is replaced rather than awaited.
+      if (clip) await playSprite(mascot, clip);
+    } finally {
+      busy = false;
+      playSprite(mascot, BRAND_CLIP);
+    }
+  });
+}
+
+/** Load one reaction clip once. A missing or broken sheet resolves to null. */
+function loadEgg(name) {
+  if (!eggClips.has(name)) {
+    const base = `/brand/clips/${name}-sheet`;
+    eggClips.set(
+      name,
+      fetch(`${base}.json`)
+        .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
+        .then((json) => ({
+          sheet: {
+            src: `${base}.png`,
+            frames: json.frames.length,
+            frameWidth: json.frames[0].frame.w,
+            frameHeight: json.frames[0].frame.h,
+          },
+          frameMsByFrame: json.frames.map((frame) => frame.duration),
+          loop: false,
+        }))
+        .catch(() => null),
+    );
+  }
+  return eggClips.get(name);
+}
+
+/** Never the reaction that just played: the same one twice in a row is a bug. */
+function pickEgg(previous) {
+  const others = EGG_SHEETS.filter((name) => name !== previous);
+  return others[Math.floor(Math.random() * others.length)];
 }
 
 // Wails rejects with a bare object in browser preview, so err.message is empty.

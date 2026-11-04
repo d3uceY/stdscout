@@ -1,0 +1,114 @@
+{ "frames": [
+   {
+    "filename": "stdscout-react-glance #glance 0.aseprite",
+    "frame": { "x": 0, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 130
+   },
+   {
+    "filename": "stdscout-react-glance #glance 1.aseprite",
+    "frame": { "x": 34, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 130
+   },
+   {
+    "filename": "stdscout-react-glance #glance 2.aseprite",
+    "frame": { "x": 68, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 110
+   },
+   {
+    "filename": "stdscout-react-glance #glance 3.aseprite",
+    "frame": { "x": 102, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 150
+   },
+   {
+    "filename": "stdscout-react-glance #glance 4.aseprite",
+    "frame": { "x": 136, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 110
+   },
+   {
+    "filename": "stdscout-react-glance #glance 5.aseprite",
+    "frame": { "x": 170, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 110
+   },
+   {
+    "filename": "stdscout-react-glance #glance 6.aseprite",
+    "frame": { "x": 204, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 150
+   },
+   {
+    "filename": "stdscout-react-glance #glance 7.aseprite",
+    "frame": { "x": 238, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 110
+   },
+   {
+    "filename": "stdscout-react-glance #glance 8.aseprite",
+    "frame": { "x": 272, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 130
+   },
+   {
+    "filename": "stdscout-react-glance #glance 9.aseprite",
+    "frame": { "x": 306, "y": 0, "w": 34, "h": 34 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 },
+    "sourceSize": { "w": 32, "h": 32 },
+    "duration": 130
+   }
+ ],
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.18.6-dev",
+  "image": "glance-sheet.png",
+  "format": "RGBA8888",
+  "size": { "w": 340, "h": 34 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "glance", "from": 0, "to": 9, "direction": "forward", "color": "#000000ff" }
+  ],
+  "layers": [
+   { "name": "leg-left", "opacity": 255, "blendMode": "normal" },
+   { "name": "leg-right", "opacity": 255, "blendMode": "normal" },
+   { "name": "body", "opacity": 255, "blendMode": "normal" },
+   { "name": "hand-left", "opacity": 255, "blendMode": "normal" },
+   { "name": "hand-right", "opacity": 255, "blendMode": "normal" },
+   { "name": "hat", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}
