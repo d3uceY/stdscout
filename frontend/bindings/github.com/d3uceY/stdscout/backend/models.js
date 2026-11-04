@@ -7,7 +7,7 @@
 import { Create as $Create } from "@wailsio/runtime";
 
 /**
- * Binary is one executable found on PATH.
+ * Binary is one runnable file found on PATH.
  */
 export class Binary {
     /**
@@ -28,6 +28,33 @@ export class Binary {
              * @type {string}
              */
             this["path"] = "";
+        }
+        if (!("logo" in $$source)) {
+            /**
+             * Logo is the brand mark of the folder the file lives in (/logos/<logo>.svg),
+             * empty when the folder is not a known one.
+             * @member
+             * @type {string}
+             */
+            this["logo"] = "";
+        }
+        if (!("shadowed" in $$source)) {
+            /**
+             * Shadowed means an earlier directory on PATH holds a file of the same
+             * name, so this copy is the one that does NOT run.
+             * @member
+             * @type {boolean}
+             */
+            this["shadowed"] = false;
+        }
+        if (!("system" in $$source)) {
+            /**
+             * System means the file lives under a folder Windows owns, not one the
+             * user installed something into.
+             * @member
+             * @type {boolean}
+             */
+            this["system"] = false;
         }
 
         Object.assign(this, $$source);
@@ -81,6 +108,22 @@ export class Location {
              * @type {number}
              */
             this["count"] = 0;
+        }
+        if (!("system" in $$source)) {
+            /**
+             * System marks a folder Windows owns; Dead marks one that is on PATH but
+             * no longer exists.
+             * @member
+             * @type {boolean}
+             */
+            this["system"] = false;
+        }
+        if (!("dead" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["dead"] = false;
         }
 
         Object.assign(this, $$source);

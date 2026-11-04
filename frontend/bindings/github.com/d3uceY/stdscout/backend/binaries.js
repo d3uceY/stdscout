@@ -22,7 +22,8 @@ import * as $models from "./models.js";
  * This is the Go equivalent of `Get-Command -CommandType Application`: same
  * source (PATH), same filter (PATHEXT on Windows, the exec bit elsewhere), but
  * no shell to spawn, so no quoting, no encoding, no console truncation — the
- * paths are always complete.
+ * paths are always complete. On top of that each entry says whether it is the
+ * copy that actually runs and whether Windows owns it.
  * @returns {$CancellablePromise<$models.Binary[]>}
  */
 export function List() {
@@ -33,7 +34,8 @@ export function List() {
 
 /**
  * Locations groups the PATH scan by directory: the folders that keep a family
- * of binaries together, which is what the grid view shows.
+ * of binaries together, which is what the grid view shows. Directories that no
+ * longer exist come back too, flagged, because they are the actionable ones.
  * @returns {$CancellablePromise<$models.Location[]>}
  */
 export function Locations() {
