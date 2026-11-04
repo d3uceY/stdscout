@@ -2,6 +2,7 @@ package backend
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -57,16 +58,43 @@ func TestLocations(t *testing.T) {
 
 	total := 0
 	for _, loc := range locations {
-		if loc.Count <= 0 {
-			t.Errorf("%q counted %d binaries", loc.Path, loc.Count)
-		}
 		if loc.Label == "" {
 			t.Errorf("%q has no label", loc.Path)
+		}
+		if loc.Dead {
+			if loc.Count != 0 {
+				t.Errorf("dead %q counted %d binaries", loc.Path, loc.Count)
+			}
+			continue
+		}
+		if loc.Count <= 0 {
+			t.Errorf("%q counted %d binaries", loc.Path, loc.Count)
 		}
 		total += loc.Count
 	}
 	if total != len(binaries) {
 		t.Errorf("locations hold %d binaries, List returned %d", total, len(binaries))
+	}
+}
+
+// A label with a logo that is not on disk is a broken image in the grid and a
+// broken stack in the table, and nothing else would catch it: the Go side never
+// touches the file.
+func TestKnownDirLogosExist(t *testing.T) {
+	seen := map[string]bool{}
+	for _, known := range knownDir {
+		if known.logo == "" || seen[known.logo] {
+			continue
+		}
+		seen[known.logo] = true
+
+		path := filepath.Join("..", "frontend", "public", "logos", known.logo+".svg")
+		if _, err := os.Stat(path); err != nil {
+			t.Errorf("%q points at %s, which is missing", known.label, path)
+		}
+	}
+	if len(seen) == 0 {
+		t.Fatal("no known dir has a logo")
 	}
 }
 
@@ -96,7 +124,10 @@ func TestDescribeDir(t *testing.T) {
 		{`C:\Users\me\AppData\Local\Microsoft\WinGet\Packages\Brecht.WinLibs_Microsoft.Winget.Source_x\mingw64\bin`, "MinGW"},
 		{`C:\Users\me\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_x\ffmpeg-9-build\bin`, "FFmpeg"},
 		{`C:\Users\me\AppData\Local\Microsoft\WinGet\Links`, "winget"},
-		{`C:\Tools\whatever`, "whatever"},
+		// Unknown folders keep their parent: a bare "Binn" identifies nothing.
+		{`C:\Program Files\Acme Suite\Binn`, `Acme Suite\Binn`},
+		{`C:\Tools\whatever`, `Tools\whatever`},
+		{`D:\loose`, "loose"},
 	}
 
 	for _, c := range cases {

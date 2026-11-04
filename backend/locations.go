@@ -12,6 +12,10 @@ type Location struct {
 	Label string `json:"label"`
 	Logo  string `json:"logo"` // brand mark in /logos, empty when none is known
 	Count int    `json:"count"`
+	// System marks a folder Windows owns; Dead marks one that is on PATH but
+	// no longer exists.
+	System bool `json:"system"`
+	Dead   bool `json:"dead"`
 }
 
 // knownDir labels the directories people actually look for, and gives each a
@@ -20,8 +24,8 @@ type Location struct {
 // (flutter\bin before dart-sdk\bin, windows kits before windows).
 var knownDir = []struct{ fragment, label, logo string }{
 	// Windows. \windows kits starts with \windows, so it has to come first.
-	{`\windows\system32\windowspowershell`, "PowerShell", ""},
-	{`\windows\system32\openssh`, "OpenSSH", ""},
+	{`\windows\system32\windowspowershell`, "PowerShell", "powershell"},
+	{`\windows\system32\openssh`, "OpenSSH", "openssh"},
 	{`\windows\system32\wbem`, "WMI", "windows"},
 	{`\windows\system32`, "System32", "windows"},
 	{`\windows\syswow64`, "SysWOW64", "windows"},
@@ -30,8 +34,8 @@ var knownDir = []struct{ fragment, label, logo string }{
 	{`\windows`, "Windows", "windows"},
 
 	// Editors and IDEs.
-	{`\microsoft vs code insiders`, "VS Code Insiders", ""},
-	{`\microsoft vs code\bin`, "VS Code", ""},
+	{`\microsoft vs code insiders`, "VS Code Insiders", "vscode-insiders"},
+	{`\microsoft vs code\bin`, "VS Code", "vscode"},
 	{`\cursor\resources\app\bin`, "Cursor", "cursor"},
 	{`\jetbrains`, "JetBrains", "jetbrains"},
 	{`\nvim`, "Neovim", "neovim"},
@@ -47,7 +51,7 @@ var knownDir = []struct{ fragment, label, logo string }{
 
 	// Languages and runtimes.
 	{`\.deno\bin`, "Deno", "deno"},
-	{`\.volta\bin`, "Volta", ""},
+	{`\.volta\bin`, "Volta", "volta"},
 	{`\nvm`, "nvm", "nodedotjs"},
 	{`\fnm`, "fnm", "nodedotjs"},
 	{`\yarn\bin`, "Yarn", "yarn"},
@@ -80,21 +84,21 @@ var knownDir = []struct{ fragment, label, logo string }{
 	{`\.dotnet\tools`, ".NET Tools", "dotnet"},
 	{`\dotnet`, ".NET", "dotnet"},
 	{`\nsis`, "NSIS", "nsis"},
-	{`\mingw64`, "MinGW", ""},
-	{`\msys64`, "MSYS2", ""},
-	{`\cygwin`, "Cygwin", ""},
+	{`\mingw64`, "MinGW", "mingw"},
+	{`\msys64`, "MSYS2", "msys2"},
+	{`\cygwin`, "Cygwin", "cygwin"},
 
 	// Build and toolchains.
-	{`\microsoft visual studio`, "Visual Studio", ""},
-	{`\msbuild`, "MSBuild", ""},
+	{`\microsoft visual studio`, "Visual Studio", "visualstudio"},
+	{`\msbuild`, "MSBuild", "msbuild"},
 	{`\cmake\bin`, "CMake", "cmake"},
 	{`\llvm\bin`, "LLVM", "llvm"},
-	{`\ninja`, "Ninja", ""},
+	{`\ninja`, "Ninja", "ninja"},
 	{`\android\sdk`, "Android SDK", "android"},
 
 	// Package managers.
 	{`\chocolatey`, "Chocolatey", "chocolatey"},
-	{`\scoop`, "Scoop", ""},
+	{`\scoop`, "Scoop", "scoop"},
 
 	// Containers, cloud, infrastructure.
 	{`\docker`, "Docker", "docker"},
@@ -104,8 +108,8 @@ var knownDir = []struct{ fragment, label, logo string }{
 	{`\helm`, "Helm", "helm"},
 	{`\terraform`, "Terraform", "terraform"},
 	{`\cloud sdk`, "Google Cloud SDK", "googlecloud"},
-	{`\amazon\awscli`, "AWS CLI", ""},
-	{`\microsoft sdks\azure`, "Azure CLI", ""},
+	{`\amazon\awscli`, "AWS CLI", "aws"},
+	{`\microsoft sdks\azure`, "Azure CLI", "azure"},
 	{`\tailscale`, "Tailscale", "tailscale"},
 	{`\ngrok`, "ngrok", "ngrok"},
 
@@ -124,15 +128,15 @@ var knownDir = []struct{ fragment, label, logo string }{
 
 	// Media, docs and utilities.
 	{`\7-zip`, "7-Zip", "7zip"},
-	{`\imagemagick`, "ImageMagick", ""},
-	{`\pandoc`, "Pandoc", ""},
-	{`\graphviz`, "Graphviz", ""},
+	{`\imagemagick`, "ImageMagick", "imagemagick"},
+	{`\pandoc`, "Pandoc", "pandoc"},
+	{`\graphviz`, "Graphviz", "graphviz"},
 	{`\miktex`, "MiKTeX", "latex"},
 	{`\texlive`, "TeX Live", "latex"},
-	{`\yt-dlp`, "yt-dlp", ""},
+	{`\yt-dlp`, "yt-dlp", "ytdlp"},
 	{`\obs-studio`, "OBS Studio", "obsstudio"},
 	{`\wireshark`, "Wireshark", "wireshark"},
-	{`\putty`, "PuTTY", ""},
+	{`\putty`, "PuTTY", "putty"},
 	{`\openssl`, "OpenSSL", "openssl"},
 	{`\postman`, "Postman", "postman"},
 	{`\ffmpeg`, "FFmpeg", "ffmpeg"},
@@ -140,8 +144,10 @@ var knownDir = []struct{ fragment, label, logo string }{
 
 	// Last on purpose: a package-manager cache wraps every tool it installed,
 	// so \microsoft\winget\packages\<vendor>\...\mingw64\bin should read as
-	// MinGW, and only paths nothing else claimed fall through to here.
-	{`\microsoft\winget`, "winget", "windows"},
+	// MinGW, and only paths nothing else claimed fall through to here. No logo:
+	// winget-managed tools are not Windows' own, and a Windows mark here would
+	// say they were.
+	{`\microsoft\winget`, "winget", ""},
 }
 
 // installRoots are the parents installers choose between. They are stripped
@@ -162,26 +168,45 @@ func init() {
 }
 
 // Locations groups the PATH scan by directory: the folders that keep a family
-// of binaries together, which is what the grid view shows.
+// of binaries together, which is what the grid view shows. Directories that no
+// longer exist come back too, flagged, because they are the actionable ones.
 func (b *Binaries) Locations() ([]Location, error) {
-	binaries, err := b.List()
-	if err != nil {
-		return nil, err
-	}
+	res := scan(pathDirs())
+	roots := systemRoots()
 
-	counts := make(map[string]int, len(binaries))
-	for _, binary := range binaries {
+	counts := make(map[string]int, len(res.binaries))
+	for _, binary := range res.binaries {
 		counts[filepath.Dir(binary.Path)]++
 	}
 
-	out := make([]Location, 0, len(counts))
+	out := make([]Location, 0, len(counts)+len(res.dead))
 	for dir, count := range counts {
 		label, logo := describeDir(dir)
-		out = append(out, Location{Path: dir, Label: label, Logo: logo, Count: count})
+		out = append(out, Location{
+			Path:   dir,
+			Label:  label,
+			Logo:   logo,
+			Count:  count,
+			System: isSystem(dir, roots),
+		})
+	}
+	for _, dir := range res.dead {
+		label, logo := describeDeadDir(dir)
+		out = append(out, Location{
+			Path:   dir,
+			Label:  label,
+			Logo:   logo,
+			System: isSystem(dir, roots),
+			Dead:   true,
+		})
 	}
 
-	// Biggest clusters first: System32 before a single-tool folder.
+	// A folder that has gone missing is the one thing worth acting on, then the
+	// biggest clusters: System32 before a single-tool folder.
 	sort.Slice(out, func(i, j int) bool {
+		if out[i].Dead != out[j].Dead {
+			return out[i].Dead
+		}
 		if out[i].Count != out[j].Count {
 			return out[i].Count > out[j].Count
 		}
@@ -191,13 +216,44 @@ func (b *Binaries) Locations() ([]Location, error) {
 }
 
 func describeDir(dir string) (string, string) {
+	if label, logo := knownLabel(dir); label != "" {
+		return label, logo
+	}
+	return lastSegments(dir, 2), ""
+}
+
+// describeDeadDir is describeDir with more context: a folder that has gone
+// missing is the thing you have to go and fix, so its label has to be unique
+// enough to find it (Tools\a\Binn and Tools\b\Binn both read "Tools\Binn").
+func describeDeadDir(dir string) (string, string) {
+	if label, logo := knownLabel(dir); label != "" {
+		return label, logo
+	}
+	return lastSegments(dir, 3), ""
+}
+
+// knownLabel matches the table; it returns empty strings for an unknown folder.
+func knownLabel(dir string) (string, string) {
 	lower := trimRoot(strings.ToLower(strings.ReplaceAll(dir, "/", `\`)))
 	for _, known := range knownDir {
 		if strings.Contains(lower, known.fragment) {
 			return known.label, known.logo
 		}
 	}
-	return filepath.Base(dir), ""
+	return "", ""
+}
+
+// lastSegments keeps an unknown folder identifiable in the grid: a bare "Binn"
+// says nothing, and three dead entries can share it, so keep the parent too.
+func lastSegments(dir string, n int) string {
+	parts := strings.Split(strings.Trim(strings.ReplaceAll(dir, "/", `\`), `\`), `\`)
+	if len(parts) > n {
+		parts = parts[len(parts)-n:]
+	}
+	if len(parts) > 1 && strings.HasSuffix(parts[0], ":") {
+		parts = parts[1:] // a drive letter is not context
+	}
+	return strings.Join(parts, `\`)
 }
 
 // trimRoot drops the first installer root it finds, keeping a separator so
