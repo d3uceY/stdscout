@@ -89,11 +89,12 @@ function describe(err) {
   return json === "{}" ? "backend unavailable" : json;
 }
 
-const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 // `amount` caps the whole stagger, otherwise 900 rows animate for ten seconds.
+// The reduced-motion check lives inside the call, not in a module const: fade()
+// runs at startup, before any const declared below this point would exist.
 function fade(selector, { y = 0, stagger = 0.02 } = {}) {
-  if (calm) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
   gsap.from(selector, {
     opacity: 0,
     y,
