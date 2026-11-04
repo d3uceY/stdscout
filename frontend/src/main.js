@@ -6,6 +6,18 @@
 
 import gsap from "gsap";
 import { Binaries } from "../bindings/github.com/d3uceY/stdscout/backend";
+import { playSprite } from "./sprite.js";
+
+// The brand idle: six 32x32 frames on a 192x32 strip. Frames 2 and 5 snap
+// quicker, which is the little head-flick in the loop.
+const BRAND_CLIP = {
+  sheet: { src: "/brand/idle.png", frames: 6, frameWidth: 32, frameHeight: 32 },
+  frameMs: 150,
+  timing: [
+    { frames: 2, frameMs: 110 },
+    { frames: 5, frameMs: 110 },
+  ],
+};
 
 const root = document.getElementById("app");
 
@@ -40,6 +52,9 @@ if (!window.Elm) {
   // Only the top bar animates on launch: fading the content from zero just makes
   // the window look empty for half a second. Rows fade in when data arrives.
   fade(".topbar", { y: -6, stagger: 0 });
+
+  // Elm renders the empty crop box; the player owns everything inside it.
+  playSprite(document.querySelector(".brand-logo"), BRAND_CLIP);
 }
 
 // Wails rejects with a bare object in browser preview, so err.message is empty.

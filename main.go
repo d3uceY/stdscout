@@ -31,9 +31,9 @@ func main() {
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "StdScout",
-		Width:            1000,
-		Height:           720,
-		BackgroundColour: application.NewRGB(250, 250, 250), // matches the page, no dark flash
+		Width:            620,
+		Height:           620,
+		BackgroundColour: application.NewRGB(250, 250, 250), 
 		URL:              "/",
 	})
 

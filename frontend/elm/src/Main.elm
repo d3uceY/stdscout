@@ -135,7 +135,7 @@ view model =
     div [ Attr.class "shell" ]
         [ header [ Attr.class "topbar" ]
             [ div [ Attr.class "brand" ]
-                [ img [ Attr.class "brand-logo", Attr.src "/logo.png", Attr.alt "" ] []
+                [ brandSprite
                 , span [ Attr.class "brand-name" ] [ text "StdScout" ]
                 ]
             , span [ Attr.class "topbar-meta" ] [ text (summary model) ]
@@ -153,6 +153,15 @@ view model =
                     locationsView model
             )
         ]
+
+
+{-| An empty crop box. main.js mounts the sprite sheet player into it once, on
+ startup; the element is never rebuilt, so the player keeps its place across
+ re-renders.
+-}
+brandSprite : Html Msg
+brandSprite =
+    span [ Attr.class "brand-logo", Attr.attribute "aria-hidden" "true" ] []
 
 
 tabButton : Tab -> Tab -> String -> Html Msg

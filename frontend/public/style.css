@@ -74,12 +74,25 @@ body {
     gap: 8px;
 }
 
+/* Crop box for one 32px frame, drawn up to 38px. The strip inside is one
+   transform step per frame, so the box must never scroll the page. */
 .brand-logo {
+    position: relative;
+    display: block;
+    flex: none;
     width: 38px;
     height: 38px;
-    /* 32px source, scaled up. Integer box keeps it on whole pixels, and
-       `pixelated` stops the upscale going soft. */
+    overflow: hidden;
+}
+
+.brand-logo img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    max-width: none;
+    /* `pixelated` stops the upscale going soft. */
     image-rendering: pixelated;
+    will-change: transform;
 }
 
 .brand-name {
