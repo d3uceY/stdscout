@@ -13,6 +13,8 @@ Every executable on your PATH, and the folders that keep them. Windows only.
 
 Windows' own binaries are hidden until you flip **System**.
 
+<img src="docs/app.png" width="604" alt="StdScout listing the executables on PATH">
+
 ## Install
 
 [Releases](https://github.com/d3uceY/stdscout/releases) has a portable `.exe` and an NSIS installer. Both are unsigned: SmartScreen → **More info** → **Run anyway**.
