@@ -53,6 +53,14 @@ export function Reveal(path) {
     return $Call.ByID(4000982022, path);
 }
 
+/**
+ * Version is what the top bar prints beside the name.
+ * @returns {$CancellablePromise<string>}
+ */
+export function Version() {
+    return $Call.ByID(2323181165);
+}
+
 // Private type creation functions
 const $$createType0 = $models.Binary.createFrom;
 const $$createType1 = $Create.Array($$createType0);
