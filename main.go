@@ -14,12 +14,19 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+// AppVersion is stamped in by the release build:
+//
+//	go build -ldflags "-X main.AppVersion=v1.2.3"
+//
+// A local build keeps "dev".
+var AppVersion = "dev"
+
 func main() {
 	app := application.New(application.Options{
 		Name:        "StdScout",
 		Description: "Every executable on your PATH",
 		Services: []application.Service{
-			application.NewService(&backend.Binaries{}),
+			application.NewService(&backend.Binaries{AppVersion: AppVersion}),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
