@@ -6,7 +6,7 @@
 
 import gsap from "gsap";
 import { Binaries } from "../bindings/github.com/d3uceY/stdscout/backend";
-import { playSprite } from "./sprite.js";
+import { clipFromAseprite, playSprite } from "./sprite.js";
 
 // The brand idle: six 32x32 frames on a 192x32 strip. Frames 2 and 5 snap
 // quicker, which is the little head-flick in the loop.
@@ -27,7 +27,15 @@ const root = document.getElementById("app");
 if (!window.Elm) {
   root.textContent = "public/elm.js is missing — run `npm run elm:build`.";
 } else {
-  const app = window.Elm.Main.init({ node: root, flags: null });
+  // Ask the binary which release it is before Elm's first paint, so the top
+  // bar never shows an empty slot. Browser preview has no binding: empty.
+  Binaries.Version()
+    .catch(() => "")
+    .then(boot);
+}
+
+function boot(version) {
+  const app = window.Elm.Main.init({ node: root, flags: { version } });
 
   // One handler per action: adding a binding is one entry, not another branch.
   const actions = {
@@ -115,16 +123,9 @@ function loadEgg(name) {
       name,
       fetch(`${base}.json`)
         .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
-        .then((json) => ({
-          sheet: {
-            src: `${base}.png`,
-            frames: json.frames.length,
-            frameWidth: json.frames[0].frame.w,
-            frameHeight: json.frames[0].frame.h,
-          },
-          frameMsByFrame: json.frames.map((frame) => frame.duration),
-          loop: false,
-        }))
+        // The sheets are padded to a 34x34 cell around a 32x32 canvas; the
+        // export says so, so the player reads the geometry from the JSON.
+        .then((json) => clipFromAseprite(json, `${base}.png`))
         .catch(() => null),
     );
   }
