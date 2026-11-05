@@ -40,14 +40,23 @@ port errorFromJs : (String -> msg) -> Sub msg
 -- PROGRAM
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+{-| The version the release build stamped into the Go binary. It never
+changes while the app runs, so it arrives once as a flag instead of over a
+port.
+-}
+type alias Flags =
+    { version : String }
+
+
+init : Flags -> ( Model, Cmd Msg )
+init flags =
     ( { tab = Applications
       , status = Loading
       , binaries = []
       , locations = []
       , query = ""
       , showSystem = False
+      , version = flags.version
       }
     , Cmd.batch
         [ request { action = "list", target = "" }
@@ -94,7 +103,7 @@ subscriptions _ =
         ]
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
         { init = init
