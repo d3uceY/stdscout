@@ -17,6 +17,7 @@ view model =
             [ div [ Attr.class "brand" ]
                 [ brandSprite
                 , span [ Attr.class "brand-name" ] [ text "StdScout" ]
+                , release model.version
                 ]
             , span [ Attr.class "topbar-meta" ] [ text (summary model) ]
             ]
@@ -49,6 +50,18 @@ re-renders.
 brandSprite : Html Msg
 brandSprite =
     span [ Attr.class "brand-logo", Attr.attribute "aria-hidden" "true" ] []
+
+
+{-| The release stamped into the binary at build time, in small print. Empty
+in a browser preview, where nothing stamped it.
+-}
+release : String -> Html Msg
+release version =
+    if version == "" then
+        text ""
+
+    else
+        span [ Attr.class "brand-version" ] [ text version ]
 
 
 tabButton : Tab -> Tab -> String -> Html Msg
