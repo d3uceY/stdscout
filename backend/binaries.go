@@ -10,7 +10,15 @@ import (
 
 // Binaries is the service registered with Wails in main.go. Every exported
 // method becomes a JS binding.
-type Binaries struct{}
+type Binaries struct {
+	// AppVersion is the release stamped in by the linker; main.go passes it on.
+	AppVersion string
+}
+
+// Version is what the top bar prints beside the name.
+func (b *Binaries) Version() string {
+	return b.AppVersion
+}
 
 // List walks PATH and returns every runnable file, sorted by name.
 //
