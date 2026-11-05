@@ -4,6 +4,12 @@
 // clip says which frames play in what order and how long each is held. Frame
 // numbers are 1-based and inclusive, the way the art is exported.
 //
+// A cell in the strip is not always the art: Aseprite's "border" export pads
+// every frame, so a 32x32 canvas lands in a 34x34 cell. `frameWidth` /
+// `frameHeight` describe the canvas (what gets scaled to the crop box),
+// `cellWidth` / `cellHeight` describe the step, and `padX` / `padY` the border
+// inside the cell. All three default to "no padding".
+//
 // Left behind on purpose: `content` crops, `anchor` boxes and `lift`. Those
 // exist to keep differently-shaped mascot poses on one ground line. StdScout's
 // sheet is a plain uniform strip, so every frame is framed the same way.
@@ -67,19 +73,31 @@ export function playSprite(host, clip) {
   // CSS owns the on-screen size; the engine just follows it, so one art pixel
   // never lands on a half screen pixel.
   const { frames, frameWidth, frameHeight } = clip.sheet;
-  const width = host.clientWidth || frameWidth;
-  const height = host.clientHeight || frameHeight;
+  const cellWidth = clip.sheet.cellWidth ?? frameWidth;
+  const cellHeight = clip.sheet.cellHeight ?? frameHeight;
+  const padX = clip.sheet.padX ?? 0;
+  const padY = clip.sheet.padY ?? 0;
+
+  const boxWidth = host.clientWidth || frameWidth;
+  const boxHeight = host.clientHeight || frameHeight;
+  // One art pixel in screen pixels. Scale from the canvas, never from the cell:
+  // a padded sheet scaled by its cell size draws smaller than an unpadded one
+  // in the same box. The smaller axis wins so a frame cannot spill out of a box
+  // that is not the canvas's shape.
+  const scale = Math.min(boxWidth / frameWidth, boxHeight / frameHeight);
 
   const img = document.createElement("img");
   img.src = clip.sheet.src;
   img.alt = "";
   img.draggable = false;
-  img.style.width = `${frames * width}px`;
-  img.style.height = `${height}px`;
+  img.style.width = `${frames * cellWidth * scale}px`;
+  img.style.height = `${cellHeight * scale}px`;
   host.appendChild(img);
 
+  // Step to the cell, then drop the border so the canvas lands on 0,0.
   const draw = (frame) => {
-    img.style.transform = `translateX(${-(frame - 1) * width}px)`;
+    const x = -((frame - 1) * cellWidth + padX) * scale;
+    img.style.transform = `translate(${x}px, ${-padY * scale}px)`;
   };
 
   const plan = framePlan(clip);
@@ -117,6 +135,35 @@ export function playSprite(host, clip) {
 
     tick();
   });
+}
+
+/**
+ * Build a clip from an Aseprite "JSON data" export, so art never has to be
+ * described twice. The export's `sourceSize` is the canvas the art was drawn
+ * on and `frame` is the cell it was packed into; when `trimmed` is set the
+ * `spriteSourceSize` offsets are the real border, otherwise the padding is
+ * whatever the cell has over the canvas, split evenly.
+ */
+export function clipFromAseprite(json, src, { loop = false } = {}) {
+  const { frame, sourceSize, spriteSourceSize, trimmed } = json.frames[0];
+  const pad = trimmed
+    ? spriteSourceSize
+    : { x: (frame.w - sourceSize.w) / 2, y: (frame.h - sourceSize.h) / 2 };
+
+  return {
+    sheet: {
+      src,
+      frames: json.frames.length,
+      frameWidth: sourceSize.w,
+      frameHeight: sourceSize.h,
+      cellWidth: frame.w,
+      cellHeight: frame.h,
+      padX: pad.x,
+      padY: pad.y,
+    },
+    frameMsByFrame: json.frames.map((f) => f.duration),
+    loop,
+  };
 }
 
 /** Take whatever is playing out of `host` and leave the box empty. */
