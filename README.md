@@ -2,7 +2,7 @@
   <img src="docs/brand/idle.gif" width="128" alt="StdScout mascot">
 </p>
 
-# StdScout
+# StdScout (i made the pixel art myself without ai btw)
 
 Every executable on your PATH, and the folders that keep them. Windows only.
 (i do not give a fuck about non windows users, sorry)
