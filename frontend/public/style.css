@@ -104,6 +104,17 @@ body {
     letter-spacing: -0.01em;
 }
 
+/* The release stamped into the binary. Quiet enough to read as metadata, not
+   as a second word in the name. */
+.brand-version {
+    margin-left: -2px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+}
+
 /* Micro label, straight from the Cokpyt tables. */
 .topbar-meta {
     font-size: 10.5px;
