@@ -55,6 +55,7 @@ type alias Model =
     , locations : List Location
     , query : String
     , showSystem : Bool
+    , version : String
     }
 
 
